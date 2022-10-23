@@ -1,6 +1,8 @@
 package one.digitalinnovation.gof.service;
 
 import one.digitalinnovation.gof.model.Cliente;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 /**
  * Interface que define o padrão <b>Strategy</b> no domínio de cliente. Com
@@ -11,13 +13,13 @@ import one.digitalinnovation.gof.model.Cliente;
  */
 public interface ClienteService {
 
-	Iterable<Cliente> buscarTodos();
+	Page<Cliente> listar(Pageable pageable);
 
 	Cliente buscarPorId(Long id);
 
-	void inserir(Cliente cliente);
+	Cliente inserir(Cliente cliente);
 
-	void atualizar(Long id, Cliente cliente);
+	Cliente atualizar(Cliente cliente);
 
 	void deletar(Long id);
 

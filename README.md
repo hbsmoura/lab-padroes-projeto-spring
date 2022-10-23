@@ -4,3 +4,7 @@ Repositório com as implementações dos padrões de projeto explorados no Lab "
 - Singleton
 - Strategy/Repository
 - Facade
+
+Além da reprodução do projeto sugerido, foram adicionados ainda:
+- Exceções personalizadas
+- Builder/build

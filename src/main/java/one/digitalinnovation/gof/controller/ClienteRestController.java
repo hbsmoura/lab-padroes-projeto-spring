@@ -1,18 +1,13 @@
 package one.digitalinnovation.gof.controller;
 
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
-
 import one.digitalinnovation.gof.model.Cliente;
 import one.digitalinnovation.gof.service.ClienteService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
 
 /**
  * Esse {@link RestController} representa nossa <b>Facade</b>, pois abstrai toda
@@ -29,30 +24,30 @@ public class ClienteRestController {
 	private ClienteService clienteService;
 
 	@GetMapping
-	public ResponseEntity<Iterable<Cliente>> buscarTodos() {
-		return ResponseEntity.ok(clienteService.buscarTodos());
+	@ResponseStatus(HttpStatus.OK)
+	public Page<Cliente> listar(Pageable pageable) {
+		return clienteService.listar(pageable);
 	}
 
 	@GetMapping("/{id}")
-	public ResponseEntity<Cliente> buscarPorId(@PathVariable Long id) {
-		return ResponseEntity.ok(clienteService.buscarPorId(id));
+	@ResponseStatus(HttpStatus.OK)
+	public Cliente buscarPorId(@PathVariable Long id) {
+		return clienteService.buscarPorId(id);
 	}
 
 	@PostMapping
-	public ResponseEntity<Cliente> inserir(@RequestBody Cliente cliente) {
-		clienteService.inserir(cliente);
-		return ResponseEntity.ok(cliente);
+	@ResponseStatus(HttpStatus.OK)
+	public Cliente inserir(@RequestBody Cliente cliente) {
+		return clienteService.inserir(cliente);
 	}
 
 	@PutMapping("/{id}")
-	public ResponseEntity<Cliente> atualizar(@PathVariable Long id, @RequestBody Cliente cliente) {
-		clienteService.atualizar(id, cliente);
-		return ResponseEntity.ok(cliente);
+	public Cliente atualizar(@RequestBody Cliente cliente) {
+		return clienteService.atualizar(cliente);
 	}
 
 	@DeleteMapping("/{id}")
-	public ResponseEntity<Void> deletar(@PathVariable Long id) {
+	public void deletar(@PathVariable Long id) {
 		clienteService.deletar(id);
-		return ResponseEntity.ok().build();
 	}
 }

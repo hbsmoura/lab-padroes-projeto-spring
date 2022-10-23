@@ -1,16 +1,19 @@
 package one.digitalinnovation.gof.service.impl;
 
-import java.util.Optional;
-
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
-
+import one.digitalinnovation.gof.exceptions.ClienteNaoEncontradoException;
 import one.digitalinnovation.gof.model.Cliente;
 import one.digitalinnovation.gof.model.ClienteRepository;
 import one.digitalinnovation.gof.model.Endereco;
 import one.digitalinnovation.gof.model.EnderecoRepository;
 import one.digitalinnovation.gof.service.ClienteService;
 import one.digitalinnovation.gof.service.ViaCepService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.stereotype.Service;
+
+import java.util.List;
+import java.util.Optional;
 
 /**
  * Implementação da <b>Strategy</b> {@link ClienteService}, a qual pode ser
@@ -25,8 +28,10 @@ public class ClienteServiceImpl implements ClienteService {
 	// Singleton: Injetar os componentes do Spring com @Autowired.
 	@Autowired
 	private ClienteRepository clienteRepository;
+
 	@Autowired
 	private EnderecoRepository enderecoRepository;
+
 	@Autowired
 	private ViaCepService viaCepService;
 	
@@ -34,39 +39,38 @@ public class ClienteServiceImpl implements ClienteService {
 	// Facade: Abstrair integrações com subsistemas, provendo uma interface simples.
 
 	@Override
-	public Iterable<Cliente> buscarTodos() {
+	public Page<Cliente> listar(Pageable pageable) {
 		// Buscar todos os Clientes.
-		return clienteRepository.findAll();
+		return clienteRepository.findAll(pageable);
 	}
 
 	@Override
 	public Cliente buscarPorId(Long id) {
 		// Buscar Cliente por ID.
-		Optional<Cliente> cliente = clienteRepository.findById(id);
-		return cliente.get();
+		return clienteRepository.findById(id).orElseThrow(ClienteNaoEncontradoException::new);
 	}
 
 	@Override
-	public void inserir(Cliente cliente) {
-		salvarClienteComCep(cliente);
+	public Cliente inserir(Cliente cliente) {
+		cliente.setId(null);
+		return salvarClienteComCep(cliente);
 	}
 
 	@Override
-	public void atualizar(Long id, Cliente cliente) {
+	public Cliente atualizar(Cliente cliente) {
 		// Buscar Cliente por ID, caso exista:
-		Optional<Cliente> clienteBd = clienteRepository.findById(id);
-		if (clienteBd.isPresent()) {
-			salvarClienteComCep(cliente);
-		}
+		clienteRepository.findById(cliente.getId()).orElseThrow(ClienteNaoEncontradoException::new);
+		return salvarClienteComCep(cliente);
 	}
 
 	@Override
 	public void deletar(Long id) {
 		// Deletar Cliente por ID.
+		clienteRepository.findById(id).orElseThrow(ClienteNaoEncontradoException::new);
 		clienteRepository.deleteById(id);
 	}
 
-	private void salvarClienteComCep(Cliente cliente) {
+	private Cliente salvarClienteComCep(Cliente cliente) {
 		// Verificar se o Endereco do Cliente já existe (pelo CEP).
 		String cep = cliente.getEndereco().getCep();
 		Endereco endereco = enderecoRepository.findById(cep).orElseGet(() -> {
@@ -75,9 +79,13 @@ public class ClienteServiceImpl implements ClienteService {
 			enderecoRepository.save(novoEndereco);
 			return novoEndereco;
 		});
-		cliente.setEndereco(endereco);
+		Cliente novoCliente = Cliente.builder()
+				.id(cliente.getId())
+				.nome(cliente.getNome())
+				.endereco(endereco)
+				.build();
 		// Inserir Cliente, vinculando o Endereco (novo ou existente).
-		clienteRepository.save(cliente);
+		return clienteRepository.save(novoCliente);
 	}
 
 }
